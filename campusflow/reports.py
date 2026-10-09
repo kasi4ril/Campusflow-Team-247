@@ -29,3 +29,41 @@ def get_work_queue(tickets):
     
     # 4. Return the sorted list
     return open_tickets
+
+
+def generate_report(tickets):
+    """
+    Generates a summary report of all tickets, broken down by status and priority.
+
+    Args:
+        tickets (list): The list of all ticket dictionaries.
+
+    Returns:
+        dict: A summary containing total count, and breakdowns by status and priority.
+    """
+    # 1. Set up the empty report template
+    report = {
+        "total": len(tickets),
+        "by_status": {},
+        "by_priority": {}
+    }
+    
+    # 2. Loop through every ticket and tally them up
+    for ticket in tickets:
+        status = ticket.get("status")
+        priority = ticket.get("priority")
+        
+        # Tally the status
+        if status:
+            if status not in report["by_status"]:
+                report["by_status"][status] = 0
+            report["by_status"][status] += 1
+            
+        # Tally the priority
+        if priority:
+            if priority not in report["by_priority"]:
+                report["by_priority"][priority] = 0
+            report["by_priority"][priority] += 1
+            
+    # 3. Return the finished report
+    return report

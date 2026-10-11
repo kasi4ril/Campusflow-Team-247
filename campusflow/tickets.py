@@ -11,9 +11,7 @@ def calculate_priority(urgency, affected_users):
             if the urgency of the report is medium and the number of affected users more or equal three 'medium'
             everything else is 'low'
             
-            variable:
-            priority stores the value of (critical,high,medium,low) at every given condition.  
-    """
+               """
     
     urgency_volume = urgency.lower().strip()
     
@@ -33,8 +31,47 @@ def calculate_priority(urgency, affected_users):
         priority = "low"
     return priority
 
-#for testing
-if __name__ == "__main__":
-    result = calculate_priority("high", 2)
-    print(f"Calculated Priority: {result}")
+
+
+def validate_category(category):
+    """
+    Validate_category(category):
     
+        validate and make sure the user do not use any othere category except the one provided.
+    """
+    allowed_categories =["network", "hardware", "software", "other"]
+    cleaned_category = category.strip().lower()
+    if cleaned_category in allowed_categories:
+        return True
+
+    return False
+
+
+def create_ticket(ticket_id, title, category, urgency, affected_users):
+    """
+    create_ticket(ticket_id, title, category, urgency, affected_users,):
+    
+        create a dictionary object and store the reports contents and return the object.
+            
+            """
+    if not validate_category(category):
+        return "Error: Category not allowed"
+    
+    ticket = {
+    "id": ticket_id,
+    "title": title,
+    "category":category.strip().title(),
+    "urgency": urgency,
+    "affected_users": affected_users,
+    "priority": calculate_priority(urgency, affected_users),
+    "status": "open",
+    "assigned_to": None
+    }
+    print(ticket)  
+
+
+
+#for output testing
+if __name__ == "__main__":
+    new = create_ticket("T001", "HardWare Issuse", "HardWare", "high", 12 )
+print(new)

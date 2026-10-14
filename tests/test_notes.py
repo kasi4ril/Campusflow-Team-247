@@ -1,13 +1,25 @@
 """
 Tests for Follow-up Notes Module.
-TDD Step 1: Red Phase for follow-up notes specifications.
+Covers Contract Scenarios T05, T06, T07, and ID generation invariants.
 """
 import unittest
+from copy import deepcopy
+
 from campusflow.notes import add_note, generate_note_id
+from campusflow.tickets import create_ticket
+from campusflow.workflow import assign_ticket, update_status
+
 
 class TestNotes(unittest.TestCase):
-
     def setUp(self):
+        self.tickets = []
+        self.ticket = create_ticket(
+            self.tickets,
+            "Internet connection lost",
+            "Network",
+            "high",
+            5,
+        )
         self.open_ticket = {
             "id": "T001",
             "title": "Wi-Fi outage in Lab 1",
@@ -33,63 +45,80 @@ class TestNotes(unittest.TestCase):
             ]
         }
 
-    def test_add_valid_note(self):
-        """05. Valid note added and note ID correct."""
-        note = add_note(self.open_ticket, "Mentor A", "Router power cycle initiated.")
-        self.assertEqual(note["note_id"], "N001")
-        self.assertEqual(note["author"], "Mentor A")
-        self.assertEqual(note["message"], "Router power cycle initiated.")
-        self.assertEqual(len(self.open_ticket["notes"]), 1)
+    def test_generate_note_id(self):
+        """Sequential per-ticket note ID generation."""
+        self.assertEqual(generate_note_id({"notes": []}), "N001")
+        self.assertEqual(
+            generate_note_id({"notes": [{"note_id": "N004"}]}),
+            "N005",
+        )
+        self.assertEqual(
+            generate_note_id({"notes": [{"note_id": "N001"}, {"note_id": "N009"}]}),
+            "N010",
+        )
 
-        # Add second note
-        note2 = add_note(self.open_ticket, "Mentor B", "Checking fiber uplink port.")
-        self.assertEqual(note2["note_id"], "N002")
-        self.assertEqual(len(self.open_ticket["notes"]), 2)
+    def test_add_valid_note(self):
+        """05. Valid note added and note ID correct (T05)."""
+        first = add_note(self.ticket, "Grace Hopper", "Router restarted")
+        second = add_note(self.ticket, "Alan Turing", "Cable checked")
+
+        self.assertEqual(first["note_id"], "N001")
+        self.assertEqual(second["note_id"], "N002")
+        self.assertEqual(len(self.ticket["notes"]), 2)
+
+    def test_notes_receive_sequential_ids(self):
+        """Alias for T05 sequential note IDs."""
+        self.test_add_valid_note()
 
     def test_invalid_note_preserves_id_counter(self):
-        """06. Blank/too-short note rejected without consuming ID."""
+        """06. Blank/too-short note rejected without consuming ID (T06)."""
+        original = deepcopy(self.ticket)
+
         # Blank author
         with self.assertRaises(ValueError):
-            add_note(self.open_ticket, "   ", "Valid message text here.")
-        self.assertEqual(len(self.open_ticket["notes"]), 0)
+            add_note(self.ticket, "   ", "Router restarted")
+        self.assertEqual(self.ticket, original)
 
         # Message too short (< 5 chars)
         with self.assertRaises(ValueError):
-            add_note(self.open_ticket, "Mentor A", "Hi")
-        self.assertEqual(len(self.open_ticket["notes"]), 0)
+            add_note(self.ticket, "Grace Hopper", "No")
+        self.assertEqual(self.ticket, original)
 
         # Message too long (> 300 chars)
         with self.assertRaises(ValueError):
-            add_note(self.open_ticket, "Mentor A", "A" * 301)
-        self.assertEqual(len(self.open_ticket["notes"]), 0)
+            add_note(self.ticket, "Grace Hopper", "x" * 301)
+        self.assertEqual(self.ticket, original)
 
-        # Next valid note must still receive N001 (ID counter not consumed)
-        valid_note = add_note(self.open_ticket, "Mentor A", "Initial diagnostic complete.")
-        self.assertEqual(valid_note["note_id"], "N001")
+        # Note counter not consumed; next valid note gets N001
+        note = add_note(self.ticket, "Grace Hopper", "Router restarted")
+        self.assertEqual(note["note_id"], "N001")
+
+    def test_failed_note_does_not_change_ticket_or_consume_id(self):
+        """Alias for T06 failed note state preservation."""
+        self.test_invalid_note_preserves_id_counter()
 
     def test_note_on_resolved_ticket_lifecycle(self):
-        """07. Note on resolved ticket rejected; note after reopen accepted."""
-        # Attempt to add note on resolved ticket must fail
+        """07. Note on resolved ticket rejected; note after reopen accepted (T07)."""
+        assign_ticket(self.tickets, self.ticket["id"], "Grace Hopper")
+        update_status(self.tickets, self.ticket["id"], "in_progress")
+        update_status(self.tickets, self.ticket["id"], "resolved")
+
+        original = deepcopy(self.ticket)
+
+        # Rejection on resolved ticket
         with self.assertRaises(ValueError):
-            add_note(self.resolved_ticket, "Mentor A", "Attempting update on resolved ticket.")
-        self.assertEqual(len(self.resolved_ticket["notes"]), 1)  # unchanged
+            add_note(self.ticket, "Grace Hopper", "Checked the router")
+        self.assertEqual(self.ticket, original)
 
-        # Reopen ticket to open
-        self.resolved_ticket["status"] = "open"
-        # Now note must succeed and receive N002
-        new_note = add_note(self.resolved_ticket, "Mentor A", "Reopened for follow-up testing.")
-        self.assertEqual(new_note["note_id"], "N002")
-        self.assertEqual(len(self.resolved_ticket["notes"]), 2)
+        # Acceptance after reopening to open
+        update_status(self.tickets, self.ticket["id"], "open")
+        note = add_note(self.ticket, "Grace Hopper", "Checked the router")
+        self.assertEqual(note["note_id"], "N001")
 
-    def test_generate_note_id_empty_and_existing(self):
-        """generate_note_id generates sequential per-ticket IDs."""
-        ticket = {"notes": []}
-        self.assertEqual(generate_note_id(ticket), "N001")
+    def test_resolved_ticket_requires_reopening_before_note(self):
+        """Alias for T07 lifecycle."""
+        self.test_note_on_resolved_ticket_lifecycle()
 
-        ticket["notes"].append({"note_id": "N001"})
-        ticket["notes"].append({"note_id": "N009"})
-        self.assertEqual(generate_note_id(ticket), "N010")
 
 if __name__ == "__main__":
     unittest.main()
-

@@ -1,58 +1,64 @@
 """
-Follow-up Notes Module for CampusFlow Next.
+Notes Module for CampusFlow Next.
 
-Handles note creation, per-ticket sequential ID generation,
-and enforces lifecycle invariants (only open or in_progress tickets accept notes).
+Handles ticket notes, validation, and sequential per-ticket note IDs.
+Enforces lifecycle invariants: only open or in_progress tickets accept notes.
 """
 
-def generate_note_id(ticket):
-    """
-    Generates the next sequential unique note ID for a ticket (e.g. 'N001', 'N002').
-    """
+def generate_note_id(ticket: dict) -> str:
+    """Generate the next sequential note ID for a ticket (e.g. 'N001', 'N002')."""
     notes = ticket.get("notes") or []
-    max_num = 0
-    for n in notes:
-        nid = n.get("note_id", "")
-        if isinstance(nid, str) and nid.startswith("N") and nid[1:].isdigit():
-            max_num = max(max_num, int(nid[1:]))
-    return f"N{max_num + 1:03d}"
+
+    if not isinstance(notes, list):
+        raise ValueError("Ticket notes must be a list.")
+
+    max_number = 0
+
+    for note in notes:
+        if not isinstance(note, dict):
+            raise ValueError("Each note must be a dictionary.")
+
+        note_id = note.get("note_id", "")
+
+        if (
+            isinstance(note_id, str)
+            and note_id.startswith("N")
+            and note_id[1:].isdigit()
+        ):
+            max_number = max(max_number, int(note_id[1:]))
+
+    return f"N{max_number + 1:03d}"
 
 
-def add_note(ticket, author, message):
+def add_note(ticket: dict, author: str, message: str) -> dict:
     """
-    Validates inputs and adds a follow-up note to an open or in_progress ticket.
-
-    Args:
-        ticket (dict): The ticket dictionary to update.
-        author (str): Non-empty staff member or user name.
-        message (str): 5-300 character message.
-
-    Returns:
-        dict: The created note dictionary.
-
-    Raises:
-        ValueError: If ticket is resolved, author is blank, or message length is invalid.
+    Validates ticket status and inputs before appending a note.
+    Appends new note to ticket['notes'] and returns the created note dict.
+    Raises ValueError on validation failure without modifying ticket['notes'].
     """
     if ticket.get("status") == "resolved":
-        raise ValueError("Cannot add note: Resolved tickets cannot accept notes unless reopened to open.")
+        raise ValueError("Cannot add notes to a resolved ticket. Reopen it first.")
 
-    if not author or not str(author).strip():
-        raise ValueError("Note author cannot be blank.")
+    if not isinstance(author, str) or not author.strip():
+        raise ValueError("Note author must not be blank.")
 
-    cleaned_msg = str(message).strip() if message else ""
-    if len(cleaned_msg) < 5 or len(cleaned_msg) > 300:
-        raise ValueError(f"Note message must be between 5 and 300 characters (got {len(cleaned_msg)}).")
+    if not isinstance(message, str):
+        raise ValueError("Note message must be a string.")
 
-    if "notes" not in ticket or not isinstance(ticket["notes"], list):
-        ticket["notes"] = []
+    cleaned_message = message.strip()
+    if not 5 <= len(cleaned_message) <= 300:
+        raise ValueError(f"Note message must contain 5 to 300 characters (got {len(cleaned_message)}).")
 
-    note_id = generate_note_id(ticket)
-    new_note = {
-        "note_id": note_id,
-        "author": str(author).strip(),
-        "message": cleaned_msg
+    existing_notes = ticket.get("notes", [])
+    if not isinstance(existing_notes, list):
+        raise ValueError("Ticket notes must be a list.")
+
+    note = {
+        "note_id": generate_note_id(ticket),
+        "author": author.strip(),
+        "message": cleaned_message,
     }
 
-    ticket["notes"].append(new_note)
-    return new_note
-
+    # Mutate the ticket only after all validation has succeeded (validate-before-mutate)
+    ticket.setdefault("notes", []).append(note)
+    return note

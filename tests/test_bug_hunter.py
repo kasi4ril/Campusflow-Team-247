@@ -1,18 +1,46 @@
 """
 Bug Hunter Test Suite for CampusFlow Next.
-BH-2: Authored by Engineer B (Shwarji Khatang) checking Engineer A's validation/storage/lifecycle invariants.
+BH-1: Engineer A (Shuaib) tests Engineer B's work queue immutability and sorting.
+BH-2: Engineer B (Shwarji Khatang) tests Engineer A's validation, notes, and lifecycle invariants.
 """
 import unittest
 from copy import deepcopy
 
 from campusflow.notes import add_note
+from campusflow.reports import get_work_queue
+
+
+class TestBugHunterEngineerAChecksB(unittest.TestCase):
+    """
+    BH-1: Engineer A tests Engineer B's search/report edge case.
+    Verifies that building the work queue extracts numeric IDs properly
+    and never mutates the original ticket collection.
+    """
+    def test_bug_hunter_engineer_a_checks_b(self):
+        tickets = [
+            {"id": "T010", "priority": "high", "status": "open"},
+            {"id": "T002", "priority": "high", "status": "open"},
+            {"id": "T001", "priority": "low", "status": "resolved"},
+        ]
+        original_tickets = deepcopy(tickets)
+
+        queue = get_work_queue(tickets)
+
+        self.assertEqual(
+            [ticket["id"] for ticket in queue],
+            ["T002", "T010"],
+        )
+        self.assertEqual(
+            tickets,
+            original_tickets,
+            "Building the work queue must not change the original tickets.",
+        )
 
 
 class TestBugHunterEngineerBChecksA(unittest.TestCase):
     """
     BH-2: Engineer B tests Engineer A's validation, notes, and lifecycle edge cases.
     """
-
     def setUp(self):
         self.sample_ticket = {
             "id": "T001",
@@ -35,7 +63,7 @@ class TestBugHunterEngineerBChecksA(unittest.TestCase):
         must be evaluated on its stripped length. Since 'ok' is only 2 characters (< 5), it must be
         strictly rejected with ValueError without mutating ticket['notes'] or consuming note IDs.
 
-        Edge Case 2 (Invariant I3 & I1 - when validation module is loaded):
+        Edge Case 2 (Invariant I3 & I1 - validation helpers):
         Verify boolean values for affected_users are rejected because isinstance(True, int) is True,
         and illegal direct status transitions (open -> resolved) or whitespace assignees are rejected.
         """
@@ -70,42 +98,36 @@ class TestBugHunterEngineerBChecksA(unittest.TestCase):
             "Adding a note to a resolved ticket must raise ValueError and not alter notes list."
         )
 
-        # 3. Dynamic check of Engineer A's centralized validation helpers (if available)
-        try:
-            from campusflow.validation import (
-                validate_affected_users,
-                can_transition,
-                validate_title,
-                validate_category
-            )
+        # 3. Dynamic check of Engineer A's centralized validation helpers
+        from campusflow.validation import (
+            validate_affected_users,
+            can_transition,
+            validate_title,
+            validate_category
+        )
 
-            # Invariant I3: Reject booleans True and False for affected_users
-            with self.assertRaises(ValueError):
-                validate_affected_users(True)
-            with self.assertRaises(ValueError):
-                validate_affected_users(False)
+        # Invariant I3: Reject booleans True and False for affected_users
+        with self.assertRaises(ValueError):
+            validate_affected_users(True)
+        with self.assertRaises(ValueError):
+            validate_affected_users(False)
 
-            # Invariant I1: Illegal transition directly from open to resolved
-            self.assertFalse(can_transition("open", "resolved", "Grace Hopper"))
+        # Invariant I1: Illegal transition directly from open to resolved
+        self.assertFalse(can_transition("open", "resolved", "Grace Hopper"))
 
-            # Invariant I1: Open to in_progress with blank or whitespace assignee
-            self.assertFalse(can_transition("open", "in_progress", None))
-            self.assertFalse(can_transition("open", "in_progress", "   "))
+        # Invariant I1: Open to in_progress with blank or whitespace assignee
+        self.assertFalse(can_transition("open", "in_progress", None))
+        self.assertFalse(can_transition("open", "in_progress", "   "))
 
-            # Title validation: Blank or whitespace-only rejected
-            with self.assertRaises(ValueError):
-                validate_title("   ")
+        # Title validation: Blank or whitespace-only rejected
+        with self.assertRaises(ValueError):
+            validate_title("   ")
 
-            # Canonical category normalization
-            self.assertEqual(validate_category("network"), "Network")
-            with self.assertRaises(ValueError):
-                validate_category("Cloud")
-
-        except ImportError:
-            # When running on Engineer B's isolated branch prior to merge with Engineer A
-            pass
+        # Canonical category normalization
+        self.assertEqual(validate_category("network"), "Network")
+        with self.assertRaises(ValueError):
+            validate_category("Cloud")
 
 
 if __name__ == "__main__":
     unittest.main()
-

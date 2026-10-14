@@ -4,82 +4,74 @@ Tickets Module
 Handles ticket creation, input validation, and priority calculation.
 """
 
+from campusflow.validation import (
+    validate_title,
+    validate_category as validate_category_value,
+    validate_urgency,
+    validate_affected_users,
+)
+
+
 def calculate_priority(urgency, affected_users):
-    """
-    Calculates ticket priority based on urgency and affected user count.
-    
-    Order of precedence:
-    1. high urgency AND >= 10 affected users -> critical
-    2. high urgency OR >= 10 affected users  -> high
-    3. medium urgency OR >= 3 affected users -> medium
-    4. all remaining valid tickets           -> low
-    """
-    urgency_volume = urgency.lower().strip()
-    if urgency_volume not in ["low", "medium", "high"]:
-        raise ValueError("Urgency must be 'low', 'medium', or 'high'.")
+    """Calculate priority using the required precedence rules."""
+    urgency = validate_urgency(urgency)
+    affected_users = validate_affected_users(affected_users)
 
-    try:
-        affected_users = int(affected_users)
-    except (ValueError, TypeError):
-        raise ValueError("Affected users must be a whole integer.")
-
-    if affected_users <= 0:
-        raise ValueError("Affected users must be a positive integer greater than zero.")
-
-    if urgency_volume == "high" and affected_users >= 10:
+    if urgency == "high" and affected_users >= 10:
         return "critical"
-    elif urgency_volume == "high" or affected_users >= 10:
+    if urgency == "high" or affected_users >= 10:
         return "high"
-    elif urgency_volume == "medium" or affected_users >= 3:
+    if urgency == "medium" or affected_users >= 3:
         return "medium"
-    else:
-        return "low"
+    return "low"
 
 
 def validate_category(category):
-    """Validates category against allowed list."""
-    allowed = ["network", "hardware", "software", "other"]
-    return category.strip().lower() in allowed
+    """Preserve the existing boolean validation interface."""
+    try:
+        validate_category_value(category)
+        return True
+    except ValueError:
+        return False
 
 
 def generate_ticket_id(tickets):
-    """Generates the next sequential unique ticket ID (e.g. T001, T002)."""
-    if not tickets:
-        return "T001"
-    
-    # Extract numbers from IDs like 'T001' -> 1
+    """Generate the next sequential ticket ID, such as T001."""
     max_num = 0
-    for t in tickets:
-        t_id = t.get("id", "")
-        if t_id.startswith("T") and t_id[1:].isdigit():
-            max_num = max(max_num, int(t_id[1:]))
-            
+
+    for ticket in tickets:
+        ticket_id = ticket.get("id", "")
+        if (
+            isinstance(ticket_id, str)
+            and ticket_id.startswith("T")
+            and ticket_id[1:].isdigit()
+        ):
+            max_num = max(max_num, int(ticket_id[1:]))
+
     return f"T{max_num + 1:03d}"
 
 
 def create_ticket(tickets, title, category, urgency, affected_users):
-    """
-    Validates inputs, calculates priority, and appends a new ticket.
-    """
-    if not title or not title.strip():
-        raise ValueError("Title must not be blank.")
-
-    if not validate_category(category):
-        raise ValueError(f"Category '{category}' is invalid. Allowed: Network, Hardware, Software, Other.")
+    """Validate all inputs before adding a ticket."""
+    title = validate_title(title)
+    category = validate_category_value(category)
+    urgency = validate_urgency(urgency)
+    affected_users = validate_affected_users(affected_users)
 
     priority = calculate_priority(urgency, affected_users)
     ticket_id = generate_ticket_id(tickets)
 
     new_ticket = {
         "id": ticket_id,
-        "title": title.strip(),
-        "category": category.strip().title(),
-        "urgency": urgency.strip().lower(),
-        "affected_users": int(affected_users),
+        "title": title,
+        "category": category,
+        "urgency": urgency,
+        "affected_users": affected_users,
         "priority": priority,
         "status": "open",
-        "assigned_to": None
+        "assigned_to": None,
+        "notes": [],
     }
-    
+
     tickets.append(new_ticket)
     return new_ticket

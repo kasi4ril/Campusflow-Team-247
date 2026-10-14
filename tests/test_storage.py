@@ -106,6 +106,15 @@ class TestStorage(unittest.TestCase):
         with self.assertRaises(ValueError):
             load_tickets(self.test_file)
 
+    def test_unauthorized_fields_are_rejected(self):
+        ticket = self.make_ticket()
+        ticket["admin"] = True
+
+        with self.assertRaisesRegex(
+            ValueError, "Unauthorized fields in ticket record"
+        ):
+            save_tickets([ticket], self.test_file)
+
     def test_invalid_status_type_raises_value_error(self):
         for invalid_status in ([], {}):
             with self.subTest(status=invalid_status):

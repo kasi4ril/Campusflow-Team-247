@@ -19,6 +19,22 @@ class TestTickets(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     calculate_priority("high", value)
 
+    def test_priority_rules_precedence(self):
+        self.test_priority_rules()
+
+    def test_invalid_affected_users_types(self):
+        self.test_reject_invalid_affected_users()
+
+    def test_create_ticket_accepts_numeric_string(self):
+        tickets = []
+        ticket = create_ticket(
+            tickets, "Internet down in lab", "Network", "high", "15"
+        )
+
+        self.assertEqual(ticket["affected_users"], 15)
+        self.assertIsInstance(ticket["affected_users"], int)
+        self.assertEqual(ticket["priority"], "critical")
+
     def test_reject_blank_title(self):
         tickets = []
         with self.assertRaises(ValueError):

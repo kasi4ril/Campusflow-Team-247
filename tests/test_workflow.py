@@ -30,6 +30,9 @@ class TestWorkflow(unittest.TestCase):
 
         self.assertEqual(self.mock_tickets, original)
 
+    def test_unassigned_open_to_in_progress_rejected(self):
+        self.test_unassigned_ticket_cannot_be_in_progress()
+
     def test_valid_ticket_lifecycle(self):
         assign_ticket(self.mock_tickets, "T001", "Ada Lovelace")
 
@@ -62,6 +65,9 @@ class TestWorkflow(unittest.TestCase):
 
         self.assertEqual(self.mock_tickets, original)
 
+
+    def test_resolved_ticket_mutations_rejected(self):
+        self.test_resolved_ticket_cannot_change_status()
 
     def test_resolved_ticket_cannot_change_status(self):
         assign_ticket(self.mock_tickets, "T001", "Ada Lovelace")

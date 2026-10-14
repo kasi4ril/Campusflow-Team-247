@@ -55,6 +55,9 @@ def validate_ticket_record(ticket, seen_ids=None):
     if missing:
         raise ValueError(f"Ticket is missing required fields: {sorted(missing)}")
 
+    if set(ticket.keys()) - required:
+        raise ValueError("Unauthorized fields in ticket record")
+
     ticket_id = ticket["id"]
     if not isinstance(ticket_id, str) or not re.fullmatch(r"T\d{3,}", ticket_id):
         raise ValueError("Ticket ID must look like T001.")

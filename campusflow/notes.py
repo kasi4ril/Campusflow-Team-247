@@ -5,6 +5,31 @@ Handles ticket notes, validation, and sequential note IDs.
 """
 
 
+def generate_note_id(ticket: dict) -> str:
+    """Generate the next sequential note ID for a ticket."""
+    notes = ticket.get("notes") or []
+
+    if not isinstance(notes, list):
+        raise ValueError("Ticket notes must be a list.")
+
+    max_number = 0
+
+    for note in notes:
+        if not isinstance(note, dict):
+            raise ValueError("Each note must be a dictionary.")
+
+        note_id = note.get("note_id", "")
+
+        if (
+            isinstance(note_id, str)
+            and note_id.startswith("N")
+            and note_id[1:].isdigit()
+        ):
+            max_number = max(max_number, int(note_id[1:]))
+
+    return f"N{max_number + 1:03d}"
+
+
 def add_note(ticket, author, message):
     """Add a validated note to a ticket without partial changes."""
     if ticket.get("status") == "resolved":
@@ -24,19 +49,8 @@ def add_note(ticket, author, message):
     if not isinstance(existing_notes, list):
         raise ValueError("Ticket notes must be a list.")
 
-    # Find the highest existing note number before creating a new ID.
-    max_number = 0
-    for note in existing_notes:
-        note_id = note.get("note_id", "")
-        if (
-            isinstance(note_id, str)
-            and note_id.startswith("N")
-            and note_id[1:].isdigit()
-        ):
-            max_number = max(max_number, int(note_id[1:]))
-
     note = {
-        "note_id": f"N{max_number + 1:03d}",
+        "note_id": generate_note_id(ticket),
         "author": author.strip(),
         "message": message,
     }

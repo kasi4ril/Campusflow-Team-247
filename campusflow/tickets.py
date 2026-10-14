@@ -56,6 +56,11 @@ def create_ticket(tickets, title, category, urgency, affected_users):
     title = validate_title(title)
     category = validate_category_value(category)
     urgency = validate_urgency(urgency)
+
+    # Convert numeric strings, such as "15", before validation.
+    if isinstance(affected_users, str) and affected_users.strip().isdigit():
+        affected_users = int(affected_users.strip())
+
     affected_users = validate_affected_users(affected_users)
 
     priority = calculate_priority(urgency, affected_users)

@@ -50,10 +50,44 @@ This log records verified AI interactions across project sprints, showing how AI
 ## Engineer A: Shuaib (Ticket Safety, Validation & Storage)
 
 ### Interaction A1 — Validating Booleans in Python Type Hierarchies
-*(To be completed during implementation)*
+
+**Problem:** Affected-user counts must be positive integers, but Python treats booleans as a subtype of integers.
+
+**My initial understanding:** I understood that zero and negative counts were invalid, but needed to verify how Python handles `True` and `False`.
+
+**Question asked to AI:** How can validation accept positive integers while rejecting booleans, floats, and strings?
+
+**Useful AI guidance:** Use `type(value) is int` when the requirement specifically excludes booleans, and also check that the value is greater than zero.
+
+**My independent experiment/test:** Added invalid values `0`, `-1`, `3.5`, `"five"`, `True`, `False`, and `None` to the ticket validation tests.
+
+**Verification source or result:** Ran `python3 -m unittest discover -s tests -v`. The affected-user validation test passed.
+
+**Decision:** Accepted after testing.
+
+**Related files:** `campusflow/validation.py`, `campusflow/tickets.py`, `tests/test_tickets.py`
+
+**What I can now explain without AI:** Python's `bool` type is a subtype of `int`, so `isinstance(True, int)` is true. An exact type check rejects booleans when only real integers are allowed.
 
 ### Interaction A2 — Safe Atomic JSON Validation & State Preservation
-*(To be completed during implementation)*
+
+**Problem:** Loading a JSON file with corrupt or invalid ticket records must not return partially loaded data. Saving must not replace a valid file with invalid ticket data.
+
+**My initial understanding:** I knew JSON could be loaded and saved, but needed to ensure validation happened before data was accepted or written.
+
+**Question asked to AI:** How can ticket storage reject invalid records and preserve existing data when validation fails?
+
+**Useful AI guidance:** Parse and validate the complete collection before returning it. Validate records before saving, and use a temporary file followed by `os.replace` for atomic replacement.
+
+**My independent experiment/test:** Added tests for corrupt JSON, duplicate ticket IDs, invalid records, invalid status types, and preservation of notes and IDs across save/load.
+
+**Verification source or result:** Ran `python3 -m unittest discover -s tests -v`. The storage tests passed, including the invalid-record and duplicate-ID cases.
+
+**Decision:** Accepted and verified with unit tests.
+
+**Related files:** `campusflow/storage.py`, `tests/test_storage.py`
+
+**What I can now explain without AI:** Validate the complete dataset before accepting it. A temporary file and atomic replacement help prevent a failed save from leaving a partially written destination file.
 
 ---
 
@@ -64,3 +98,20 @@ This log records verified AI interactions across project sprints, showing how AI
 
 ### Interaction B2 — Multi-filter AND Logic & Empty Dataset Reporting
 *(To be completed during implementation)*
+
+
+## Team Learning Cycle — AI Suggestion Critically Reviewed
+
+**Concept gap / problem:** We needed a useful BH-1 test for Engineer B's work queue without duplicating existing coverage.
+
+**Initial AI recommendation:** Test numeric ordering of ticket IDs such as `T2` and `T10`.
+
+**Independent check:** Inspected `tests/test_reports.py` and found that `test_work_queue_sorting` already checks numeric ordering using `T002` and `T010`.
+
+**Finding:** The initial suggestion would duplicate an existing test and provide less additional coverage.
+
+**Engineering decision:** Modified the test idea to check that calling `get_work_queue()` does not mutate the original ticket list, while also checking the returned queue's contents.
+
+**Verification:** Added `tests/test_bug_hunter.py` and ran the full suite. All 25 tests passed.
+
+**Lesson:** Inspect existing tests and verify AI recommendations against the actual code before adopting them.

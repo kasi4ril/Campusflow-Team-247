@@ -61,6 +61,11 @@ class TestUnderstandingCheck(unittest.TestCase):
         zero_answers = {1: "A", 2: "A", 3: "A", 4: "A", 5: "A", 6: "A"}
         self.assertEqual(score_quiz(zero_answers), 0)
 
+    def test_understanding_check_scoring(self):
+        """T14 contract test alias: Scoring logic awards 1 point per correct answer and rejects invalid options."""
+        self.test_score_quiz_calculation()
+        self.test_validate_choice()
+
     def test_run_understanding_check_with_retry_and_explanations(self):
         """Test simulated CLI session with retry on invalid input and explanation capture."""
         # User enters 'Z' (invalid), then 'B' for Q1; 'C' for Q2; 'B' for Q3;

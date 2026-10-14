@@ -58,6 +58,10 @@ class TestReports(unittest.TestCase):
         self.assertEqual(report["resolved"], 0)
         self.assertEqual(report["resolution_percentage"], 0.0)
 
+    def test_report_zero_tickets_resolution_percentage(self):
+        """T10 contract test alias: Empty ticket list outputs 0.0% resolution rate without ZeroDivisionError."""
+        self.test_generate_report_zero_tickets()
+
     def test_report_counts_with_fixture_after_resolve_and_reopen(self):
         """11. Report counts agree with known fixture after resolve and reopen."""
         from campusflow.reports import generate_report
@@ -95,6 +99,11 @@ class TestReports(unittest.TestCase):
         self.assertEqual(r4["resolved"], 1)
         self.assertEqual(r4["by_status"]["open"], 2)
         self.assertEqual(r4["by_status"]["resolved"], 1)
+
+    def test_report_counts_with_fixture(self):
+        """T11 contract test alias: Total, by_status, by_category, resolved, and unresolved match known fixture."""
+        self.test_report_counts_with_fixture_after_resolve_and_reopen()
+
 
 # This must always be at the very bottom, un-indented!
 if __name__ == '__main__':

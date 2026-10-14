@@ -75,6 +75,10 @@ class TestSearch(unittest.TestCase):
         self.assertEqual(len(results_sub), 1)
         self.assertEqual(results_sub[0]["id"], "T002")
 
+    def test_search_title_case_insensitive(self):
+        """T08 contract test alias: Substring match on title ignores case."""
+        self.test_search_title_case_insensitive_substring()
+
     def test_combined_search_filters_logical_and(self):
         """09. Combined search filters use logical AND (all supplied must match)."""
         # Title "wi-fi" + category "Network" + status "open"
@@ -101,6 +105,11 @@ class TestSearch(unittest.TestCase):
         )
         self.assertEqual(len(results_critical), 1)
         self.assertEqual(results_critical[0]["id"], "T001")
+
+    def test_combined_search_filters_and_logic(self):
+        """T09 contract test alias: Multi-filter search requires ALL supplied filters to match."""
+        self.test_combined_search_filters_logical_and()
+
 
     def test_search_empty_filters_ignored(self):
         """Empty or whitespace filters are ignored (do not restrict results)."""

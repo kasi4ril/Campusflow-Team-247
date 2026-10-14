@@ -133,6 +133,23 @@ def score_quiz(user_answers):
             correct_count += 1
     return correct_count
 
+class QuizScore(int):
+    """
+    Subclass of int representing the final quiz score (0-6).
+    Supports integer operations and tuple unpacking:
+      score = run_understanding_check()             # score is int (0-6)
+      score, explanations = run_understanding_check() # unpacks both
+    """
+    def __new__(cls, score: int, explanations: dict | None = None):
+        instance = super().__new__(cls, score)
+        instance.explanations = explanations or {}
+        return instance
+
+    def __iter__(self):
+        yield int(self)
+        yield self.explanations
+
+
 def run_understanding_check(input_func=input, print_func=print, save_to_file=True):
     """
     Runs the interactive Engineering Understanding Check CLI.
@@ -143,7 +160,7 @@ def run_understanding_check(input_func=input, print_func=print, save_to_file=Tru
         save_to_file (bool): Whether to persist recorded explanations to disk.
 
     Returns:
-        tuple: (score, explanations_dict)
+        QuizScore: Subclass of int with score (0-6), also unpackable as (score, explanations).
     """
     print_func("\n" + "=" * 50)
     print_func("      CampusFlow Engineering Understanding Check")
@@ -190,5 +207,6 @@ def run_understanding_check(input_func=input, print_func=print, save_to_file=Tru
                 f.write(f"- **Q{qid} Selected:** {user_answers.get(qid)}\n")
                 f.write(f"  **Explanation:** {exp}\n")
 
-    return score, explanations
+    return QuizScore(score, explanations)
+
 

@@ -191,3 +191,4 @@ def run_understanding_check(input_func=input, print_func=print, save_to_file=Tru
                 f.write(f"  **Explanation:** {exp}\n")
 
     return score, explanations
+

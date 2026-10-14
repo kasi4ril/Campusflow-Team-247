@@ -55,3 +55,4 @@ def add_note(ticket, author, message):
 
     ticket["notes"].append(new_note)
     return new_note
+

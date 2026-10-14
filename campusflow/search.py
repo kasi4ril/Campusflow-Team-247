@@ -91,3 +91,4 @@ def search_tickets(
         return sorted(matches, key=sort_key)
 
     return list(matches)
+

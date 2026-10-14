@@ -1,6 +1,10 @@
-# AI Learning Log
+# CampusFlow AI Learning Log: Progressive Journal
 
-## Fellow: Khatang (Engineer B)
+This log records verified AI interactions across project sprints, showing how AI suggestions were scrutinized, tested independently, and accepted or rejected based on evidence.
+
+---
+
+# Part 1: Sprint 1 Baseline AI Log (Engineer B: Shwarji Khatang)
 
 ### Interaction #1 — Terminal Paths in TDD
 **Problem:** `unittest discover` failed to find my test module.
@@ -38,3 +42,25 @@
 **Decision:** Accepted. Cleanest way to sort custom data.
 **Related file/commit:** `campusflow/reports.py`
 **What I can now explain without AI:** How to use a dictionary to map strings to numbers so Python knows how to sort them in custom rank order.
+
+---
+
+# Part 2: Sprint 2 CampusFlow Next AI Log (Team 247)
+
+## Engineer A: Shuaib (Ticket Safety, Validation & Storage)
+
+### Interaction A1 — Validating Booleans in Python Type Hierarchies
+*(To be completed during implementation)*
+
+### Interaction A2 — Safe Atomic JSON Validation & State Preservation
+*(To be completed during implementation)*
+
+---
+
+## Engineer B: Shwarji Khatang (Search, Reports & CLI)
+
+### Interaction B1 — Casefold vs Lower for Search Substrings
+*(To be completed during implementation)*
+
+### Interaction B2 — Multi-filter AND Logic & Empty Dataset Reporting
+*(To be completed during implementation)*

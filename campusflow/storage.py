@@ -31,6 +31,9 @@ def save_tickets(tickets, file_path=DEFAULT_FILE_PATH):
     """
     Saves the list of tickets to a JSON file.
     """
+    dir_name = os.path.dirname(file_path)
+    if dir_name:
+        os.makedirs(dir_name, exist_ok=True)
     with open(file_path, "w") as file:
         # indent=4 makes the JSON file human-readable!
         json.dump(tickets, file, indent=4)

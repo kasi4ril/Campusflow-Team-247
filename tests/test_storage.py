@@ -8,6 +8,9 @@ class TestStorage(unittest.TestCase):
     def setUp(self):
         # We will use a fake file path just for testing so we don't overwrite real data
         self.test_file = "data/test_tickets.json"
+        dir_name = os.path.dirname(self.test_file)
+        if dir_name:
+            os.makedirs(dir_name, exist_ok=True)
         
         # Ensure the file doesn't exist before we start
         if os.path.exists(self.test_file):

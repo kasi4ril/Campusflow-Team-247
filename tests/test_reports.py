@@ -7,15 +7,18 @@ class TestReports(unittest.TestCase):
         messy_tickets = [
             {"id": "T003", "priority": "low", "status": "open"},
             {"id": "T001", "priority": "critical", "status": "in_progress"},
+            {"id": "T010", "priority": "critical", "status": "open"},
             {"id": "T002", "priority": "critical", "status": "open"},
             {"id": "T004", "priority": "high", "status": "resolved"}
         ]
         
         sorted_queue = get_work_queue(messy_tickets)
         
+        # Only open tickets appear; in_progress and resolved are strictly excluded
         self.assertEqual(len(sorted_queue), 3)
-        self.assertEqual(sorted_queue[0]["id"], "T001")
-        self.assertEqual(sorted_queue[1]["id"], "T002")
+        # Order: critical before low, and earlier numeric ID (T002 before T010)
+        self.assertEqual(sorted_queue[0]["id"], "T002")
+        self.assertEqual(sorted_queue[1]["id"], "T010")
         self.assertEqual(sorted_queue[2]["id"], "T003")
 
     def test_generate_report_counts(self):

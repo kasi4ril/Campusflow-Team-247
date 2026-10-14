@@ -2,8 +2,9 @@
 
 **Project:** CampusFlow Next (Sprint 2 Quality, Reliability & Search Upgrade)  
 **Target Band:** Advanced Engineering Reliability (100/100)  
+**Team:** CampusFlow Team 247  
 **Engineers:** 
-- **Engineer A (Gabriel):** Ticket Safety, Centralized Validation & Safe Storage
+- **Engineer A (Shuaib):** Ticket Safety, Centralized Validation & Safe Storage
 - **Engineer B (Shwarji Khatang):** Search, Enhanced Analytics, CLI Notes UI & Understanding Check  
 **Repository:** `https://github.com/kasi4ril/Campusflow-Team-Shwarji-Gabriel.git`
 
@@ -213,3 +214,4 @@ Each engineer must record at least **2 distinct learning cycles** (4 total) adhe
 5. **Independent Verification Source** (Python docs / unittest failure)
 6. **Engineering Decision**
 7. **Mandatory Team Rule:** At least ONE cycle across the team must document an AI recommendation that was **tested, found deficient/unsafe, and modified or rejected**.
+

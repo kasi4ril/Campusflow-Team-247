@@ -3,7 +3,8 @@
 **Date:** 2026-10-14  
 **Audited Commit SHA:** `813dd26` (HEAD on `main`)  
 **Repository:** `https://github.com/kasi4ril/Campusflow-Team-Shwarji-Gabriel.git`  
-**Engineers:** Engineer A (Gabriel), Engineer B (Khatang / Shwarji)
+**Team:** CampusFlow Team 247  
+**Engineers:** Engineer A (Shuaib), Engineer B (Shwarji Khatang)
 
 ---
 

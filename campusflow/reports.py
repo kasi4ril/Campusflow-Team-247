@@ -38,37 +38,55 @@ def get_work_queue(tickets):
 
 def generate_report(tickets):
     """
-    Generates a summary report of all tickets, broken down by status and priority.
+    Generates a comprehensive quality summary report of all tickets.
 
-    Args:
-        tickets (list): The list of all ticket dictionaries.
-
-    Returns:
-        dict: A summary containing total count, and breakdowns by status and priority.
+    Metrics include:
+    - total: Total number of tickets
+    - by_status: Breakdown count by ticket status
+    - by_priority: Breakdown count by ticket priority
+    - by_category: Breakdown count by ticket category
+    - unresolved: Count of tickets in 'open' or 'in_progress' status
+    - resolved: Count of tickets in 'resolved' status
+    - resolution_percentage: (resolved / total * 100), safely 0.0% for empty datasets
     """
-    # 1. Set up the empty report template
-    report = {
-        "total": len(tickets),
-        "by_status": {},
-        "by_priority": {}
-    }
-    
-    # 2. Loop through every ticket and tally them up
+    total = len(tickets)
+    by_status = {}
+    by_priority = {}
+    by_category = {}
+    resolved_count = 0
+    unresolved_count = 0
+
     for ticket in tickets:
         status = ticket.get("status")
         priority = ticket.get("priority")
-        
-        # Tally the status
+        category = ticket.get("category")
+
+        # Tally status
         if status:
-            if status not in report["by_status"]:
-                report["by_status"][status] = 0
-            report["by_status"][status] += 1
-            
-        # Tally the priority
+            by_status[status] = by_status.get(status, 0) + 1
+
+        # Tally priority
         if priority:
-            if priority not in report["by_priority"]:
-                report["by_priority"][priority] = 0
-            report["by_priority"][priority] += 1
-            
-    # 3. Return the finished report
-    return report
+            by_priority[priority] = by_priority.get(priority, 0) + 1
+
+        # Tally category
+        if category:
+            by_category[category] = by_category.get(category, 0) + 1
+
+        # Tally resolved vs unresolved
+        if status == "resolved":
+            resolved_count += 1
+        elif status in ["open", "in_progress"]:
+            unresolved_count += 1
+
+    resolution_percentage = (resolved_count / total * 100.0) if total > 0 else 0.0
+
+    return {
+        "total": total,
+        "by_status": by_status,
+        "by_priority": by_priority,
+        "by_category": by_category,
+        "unresolved": unresolved_count,
+        "resolved": resolved_count,
+        "resolution_percentage": round(resolution_percentage, 2)
+    }

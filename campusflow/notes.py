@@ -1,12 +1,12 @@
 """
-Notes Module
+Notes Module for CampusFlow Next.
 
-Handles ticket notes, validation, and sequential note IDs.
+Handles ticket notes, validation, and sequential per-ticket note IDs.
+Enforces lifecycle invariants: only open or in_progress tickets accept notes.
 """
 
-
 def generate_note_id(ticket: dict) -> str:
-    """Generate the next sequential note ID for a ticket."""
+    """Generate the next sequential note ID for a ticket (e.g. 'N001', 'N002')."""
     notes = ticket.get("notes") or []
 
     if not isinstance(notes, list):
@@ -30,8 +30,12 @@ def generate_note_id(ticket: dict) -> str:
     return f"N{max_number + 1:03d}"
 
 
-def add_note(ticket, author, message):
-    """Add a validated note to a ticket without partial changes."""
+def add_note(ticket: dict, author: str, message: str) -> dict:
+    """
+    Validates ticket status and inputs before appending a note.
+    Appends new note to ticket['notes'] and returns the created note dict.
+    Raises ValueError on validation failure without modifying ticket['notes'].
+    """
     if ticket.get("status") == "resolved":
         raise ValueError("Cannot add notes to a resolved ticket. Reopen it first.")
 
@@ -41,9 +45,9 @@ def add_note(ticket, author, message):
     if not isinstance(message, str):
         raise ValueError("Note message must be a string.")
 
-    message = message.strip()
-    if not 5 <= len(message) <= 300:
-        raise ValueError("Note message must contain 5 to 300 characters.")
+    cleaned_message = message.strip()
+    if not 5 <= len(cleaned_message) <= 300:
+        raise ValueError(f"Note message must contain 5 to 300 characters (got {len(cleaned_message)}).")
 
     existing_notes = ticket.get("notes", [])
     if not isinstance(existing_notes, list):
@@ -52,9 +56,9 @@ def add_note(ticket, author, message):
     note = {
         "note_id": generate_note_id(ticket),
         "author": author.strip(),
-        "message": message,
+        "message": cleaned_message,
     }
 
-    # Mutate the ticket only after all validation has succeeded.
+    # Mutate the ticket only after all validation has succeeded (validate-before-mutate)
     ticket.setdefault("notes", []).append(note)
     return note

@@ -94,11 +94,31 @@ This log records verified AI interactions across project sprints, showing how AI
 ## Engineer B: Shwarji Khatang (Search, Reports & CLI)
 
 ### Interaction B1 — Casefold vs Lower for Search Substrings
-*(To be completed during implementation)*
+- **Problem:** Choosing between `str.lower()` and `str.casefold()` for case-insensitive title search.
+- **My initial understanding:** I assumed `.lower()` was sufficient for all case-insensitive string operations.
+- **Prompt to AI:** *"Compare casefold and lower for search in Python; which one is safer for case-insensitive substring matching?"*
+- **Useful AI guidance:** AI explained that `.casefold()` is specifically designed for caseless matching and handles Unicode case foldings (such as German 'ß' mapping to 'ss'), whereas `.lower()` only performs standard casing transforms.
+- **My independent experiment/test:** Ran a quick Python test in terminal: `"ß".lower() == "ss"` evaluated to `False`, while `"ß".casefold() == "ss"` evaluated to `True`. Tested substring matching against ticket titles with mixed casing.
+- **Verification source or result:** Python Standard Library Documentation on `str.casefold()` (PEP 3138).
+- **Decision:** Accepted. Implemented `.casefold()` for title matching in `campusflow/search.py` and validated with `test_search_title_case_insensitive_substring`.
+- **Related file/commit:** `campusflow/search.py`, `tests/test_search.py`
+- **What I can now explain without AI:** `.casefold()` removes all case distinctions for caseless comparisons, making it strictly more comprehensive and defensive than `.lower()`.
+
+---
 
 ### Interaction B2 — Multi-filter AND Logic & Empty Dataset Reporting
-*(To be completed during implementation)*
+- **Problem:** Designing filter combinations and handling division when generating metrics for zero tickets.
+- **My initial understanding:** I wondered whether multi-filter queries should use OR logic or if resolution percentage could return `None` or an empty string when `total == 0`.
+- **Prompt to AI:** *"How should combined search filters work when multiple fields are provided, and how should resolution rate handle zero tickets?"*
+- **Useful AI guidance:** Explained that combined filters must narrow records using logical `AND` (all non-empty filters must match).
+- **Tested & Modified/Rejected AI guidance:** AI suggested a helper that returned `None` or raised a custom exception on empty datasets. I tested this against the CLI menu and observed that `None` caused a `TypeError` when formatted with percentage symbols in the display string. I rejected the AI's `None` return suggestion in favor of explicitly returning `0.0` as a float.
+- **My independent experiment/test:** Wrote `test_generate_report_zero_tickets` asserting `report["resolution_percentage"] == 0.0` and `report["unresolved"] == 0` without crashing.
+- **Verification source or result:** Verified against Requirement D ("An empty dataset must report 0% without division errors") and passed test suite cleanly.
+- **Decision:** Enforced logical `AND` across search filters and implemented safe default `(resolved_count / total * 100.0) if total > 0 else 0.0`.
+- **Related file/commit:** `campusflow/reports.py`, `tests/test_reports.py`
+- **What I can now explain without AI:** Why filters must use `AND` to intersect criteria, and why statistical calculations must return well-typed neutral defaults (`0.0`) to protect consumer interfaces from `ZeroDivisionError`.
 
+---
 
 ## Team Learning Cycle — AI Suggestion Critically Reviewed
 
@@ -112,6 +132,6 @@ This log records verified AI interactions across project sprints, showing how AI
 
 **Engineering decision:** Modified the test idea to check that calling `get_work_queue()` does not mutate the original ticket list, while also checking the returned queue's contents.
 
-**Verification:** Added `tests/test_bug_hunter.py` and ran the full suite. All 25 tests passed.
+**Verification:** Added `tests/test_bug_hunter.py` and ran the full suite. All tests passed.
 
 **Lesson:** Inspect existing tests and verify AI recommendations against the actual code before adopting them.
